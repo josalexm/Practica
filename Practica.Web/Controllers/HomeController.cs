@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Practica.Web.Dto;
 using Practica.Web.Models;
 using System.Diagnostics;
 
@@ -18,9 +20,21 @@ namespace Practica.Web.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public async Task<IActionResult> Privacy()
         {
-            return View();
+            List<ItemDto> items = new List<ItemDto>();
+            using (HttpClient client = new HttpClient())
+            {
+                string url = "https://jsonplaceholder.typicode.com/todos";
+                HttpResponseMessage response = await client.GetAsync(url);
+                if (response.IsSuccessStatusCode == false)
+                    throw new Exception($"Ocurrio un error { response.StatusCode }");
+
+                string jsonReponse = await response.Content.ReadAsStringAsync();
+                items = JsonConvert.DeserializeObject<List<ItemDto>>(jsonReponse);
+            }
+
+            return View(items);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
